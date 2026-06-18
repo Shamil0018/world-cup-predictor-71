@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Shield, Plus } from "lucide-react";
+import { Shield, Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · PredictCup" }] }),
@@ -79,6 +79,17 @@ function AdminPage() {
     matchesQ.refetch();
   };
 
+  const deleteMatch = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this fixture?");
+    if (!confirmDelete) return;
+
+    await supabase.from("predictions").delete().eq("match_id", id);
+    const { error } = await supabase.from("matches").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Fixture deleted successfully");
+    matchesQ.refetch();
+  };
+
   if (!isAdmin) return null;
 
   return (
@@ -123,14 +134,14 @@ function AdminPage() {
       <section>
         <h2 className="font-bold text-lg mb-4">Enter results</h2>
         <div className="space-y-2 pb-16 md:pb-0">
-          {matchesQ.data?.map((m) => <ResultRow key={m.id} m={m} onSave={saveResult} />)}
+          {matchesQ.data?.map((m) => <ResultRow key={m.id} m={m} onSave={saveResult} onDelete={deleteMatch} />)}
         </div>
       </section>
     </div>
   );
 }
 
-function ResultRow({ m, onSave }: { m: Match; onSave: (m: Match, hs: number | null, as_: number | null, status: string) => void }) {
+function ResultRow({ m, onSave, onDelete }: { m: Match; onSave: (m: Match, hs: number | null, as_: number | null, status: string) => void; onDelete: (id: string) => void }) {
   const [hs, setHs] = useState<string>(m.home_score !== null ? m.home_score.toString() : "");
   const [as_, setAs] = useState<string>(m.away_score !== null ? m.away_score.toString() : "");
   const [status, setStatus] = useState<string>(m.status);
@@ -188,6 +199,9 @@ function ResultRow({ m, onSave }: { m: Match; onSave: (m: Match, hs: number | nu
 
         <Button size="sm" onClick={handleSave} className="h-9 cursor-pointer">
           Save
+        </Button>
+        <Button size="icon" variant="destructive" onClick={() => onDelete(m.id)} className="h-9 w-9 cursor-pointer" title="Delete Fixture">
+          <Trash2 className="size-4" />
         </Button>
       </div>
     </div>
