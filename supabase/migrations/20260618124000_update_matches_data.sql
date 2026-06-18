@@ -42,15 +42,3 @@ INSERT INTO public.matches (home_team_id, away_team_id, kickoff_at, stage, statu
   ((SELECT id FROM public.teams WHERE code = 'GHA'), (SELECT id FROM public.teams WHERE code = 'PAN'), '2026-06-18 18:00:00+00', 'Group C', 'finished', 1, 0),
   ((SELECT id FROM public.teams WHERE code = 'MEX'), (SELECT id FROM public.teams WHERE code = 'USA'), '2026-06-18 20:00:00+00', 'Group A', 'finished', 2, 1);
 
--- Insert next 10 games (times in IST are converted to UTC for storage)
-INSERT INTO public.matches (home_team_id, away_team_id, kickoff_at, stage, status) VALUES
-  ((SELECT id FROM public.teams WHERE code = 'CAN'), (SELECT id FROM public.teams WHERE code = 'QAT'), '2026-06-19 03:30:00+05:30', 'Group B', 'scheduled'),
-  ((SELECT id FROM public.teams WHERE code = 'MEX'), (SELECT id FROM public.teams WHERE code = 'KOR'), '2026-06-19 06:30:00+05:30', 'Group A', 'scheduled'),
-  ((SELECT id FROM public.teams WHERE code = 'USA'), (SELECT id FROM public.teams WHERE code = 'AUS'), '2026-06-20 00:30:00+05:30', 'Group D', 'scheduled'),
-  ((SELECT id FROM public.teams WHERE code = 'SCO'), (SELECT id FROM public.teams WHERE code = 'MAR'), '2026-06-20 03:30:00+05:30', 'Group C', 'scheduled'),
-  ((SELECT id FROM public.teams WHERE code = 'BRA'), (SELECT id FROM public.teams WHERE code = 'HAI'), '2026-06-20 06:00:00+05:30', 'Group C', 'scheduled'),
-  ((SELECT id FROM public.teams WHERE code = 'TUR'), (SELECT id FROM public.teams WHERE code = 'PAR'), '2026-06-20 08:30:00+05:30', 'Group D', 'scheduled'),
-  ((SELECT id FROM public.teams WHERE code = 'NED'), (SELECT id FROM public.teams WHERE code = 'SWE'), '2026-06-20 22:30:00+05:30', 'Group F', 'scheduled'),
-  ((SELECT id FROM public.teams WHERE code = 'GER'), (SELECT id FROM public.teams WHERE code = 'CIV'), '2026-06-21 01:30:00+05:30', 'Group E', 'scheduled'),
-  ((SELECT id FROM public.teams WHERE code = 'ECU'), (SELECT id FROM public.teams WHERE code = 'CUW'), '2026-06-21 05:30:00+05:30', 'Group E', 'scheduled'),
-  ((SELECT id FROM public.teams WHERE code = 'TUN'), (SELECT id FROM public.teams WHERE code = 'JPN'), '2026-06-21 09:30:00+05:30', 'Group F', 'scheduled');
