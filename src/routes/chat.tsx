@@ -30,6 +30,9 @@ function ChatPage() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
+  
+  // Local profile cache to prevent duplicate queries on realtime updates
+  const profileCacheRef = useRef<Map<string, { username: string; avatar_url: string | null }>>(new Map());
 
   const fetchInitial = async () => {
     const { data: rows, error } = await supabase
@@ -42,6 +45,11 @@ function ChatPage() {
     const ids = Array.from(new Set(ordered.map((m) => m.user_id)));
     if (ids.length) {
       const { data: profs } = await supabase.from("profiles").select("id,username,avatar_url").in("id", ids);
+      if (profs) {
+        profs.forEach((p) => {
+          profileCacheRef.current.set(p.id, { username: p.username, avatar_url: p.avatar_url });
+        });
+      }
       const map = new Map((profs ?? []).map((p: { id: string; username: string; avatar_url: string | null }) => [p.id, p]));
       ordered.forEach((m) => { const p = map.get(m.user_id); if (p) m.profile = { username: p.username, avatar_url: p.avatar_url }; });
     }
@@ -56,10 +64,43 @@ function ChatPage() {
       .channel("chat-feed")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, async (payload) => {
         const m = payload.new as Msg;
-        const { data: prof } = await supabase.from("profiles").select("username,avatar_url").eq("id", m.user_id).maybeSingle();
-        if (prof) m.profile = prof as { username: string; avatar_url: string | null };
+        
+        let prof = profileCacheRef.current.get(m.user_id);
+        if (!prof) {
+          const { data } = await supabase.from("profiles").select("username,avatar_url").eq("id", m.user_id).maybeSingle();
+          if (data) {
+            prof = data as { username: string; avatar_url: string | null };
+            profileCacheRef.current.set(m.user_id, prof);
+          }
+        }
+        
+        if (prof) {
+          m.profile = prof;
+        }
+        
         setMsgs((prev) => [...prev, m]);
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 30);
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, (payload) => {
+        const updatedProf = payload.new as { id: string; username: string; avatar_url: string | null };
+        profileCacheRef.current.set(updatedProf.id, {
+          username: updatedProf.username,
+          avatar_url: updatedProf.avatar_url,
+        });
+        setMsgs((prev) =>
+          prev.map((msg) => {
+            if (msg.user_id === updatedProf.id) {
+              return {
+                ...msg,
+                profile: {
+                  username: updatedProf.username,
+                  avatar_url: updatedProf.avatar_url,
+                },
+              };
+            }
+            return msg;
+          })
+        );
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -96,7 +137,7 @@ function ChatPage() {
             <>
               <Avatar className="size-8 ring-1 ring-white/10">
                 <AvatarImage src={profile?.avatar_url ?? undefined} />
-                <AvatarFallback className="bg-primary/20 text-primary text-xs">{profile?.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="bg-primary/20 text-primary text-xs">{(profile?.username ?? "??").slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <Input value={text} maxLength={500} onChange={(e) => setText(e.target.value)} placeholder="Say something..." className="flex-1" />
               <Popover>
@@ -111,7 +152,7 @@ function ChatPage() {
                   </div>
                 </PopoverContent>
               </Popover>
-              <Button type="submit" size="icon" className="bg-[var(--gradient-primary)] text-primary-foreground"><Send className="size-4" /></Button>
+              <Button type="submit" size="icon" className="bg-gradient-primary text-primary-foreground cursor-pointer"><Send className="size-4" /></Button>
             </>
           )}
         </form>
@@ -126,14 +167,14 @@ function MsgRow({ m, mine }: { m: Msg; mine: boolean }) {
       <Link to="/u/$username" params={{ username: m.profile?.username ?? "" }}>
         <Avatar className="size-8 ring-1 ring-white/10">
           <AvatarImage src={m.profile?.avatar_url ?? undefined} />
-          <AvatarFallback className="bg-primary/20 text-primary text-xs">{m.profile?.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+          <AvatarFallback className="bg-primary/20 text-primary text-xs">{(m.profile?.username ?? "??").slice(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
       </Link>
       <div className={`max-w-[75%] ${mine ? "text-right" : ""}`}>
         <div className="text-[11px] text-muted-foreground">
           {m.profile?.username ?? "unknown"} · {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </div>
-        <div className={`mt-1 inline-block px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words ${mine ? "bg-[var(--gradient-primary)] text-primary-foreground rounded-tr-sm" : "bg-white/5 rounded-tl-sm"}`}>
+        <div className={`mt-1 inline-block px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words ${mine ? "bg-gradient-primary text-primary-foreground rounded-tr-sm" : "bg-white/5 rounded-tl-sm"}`}>
           {m.content}
         </div>
       </div>

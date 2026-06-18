@@ -22,6 +22,9 @@ function AuthPage() {
 
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password.length < 8) {
+      return toast.error("Password must be at least 8 characters");
+    }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
@@ -34,6 +37,9 @@ function AuthPage() {
     e.preventDefault();
     if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
       return toast.error("Username must be 3-20 chars (letters, digits, underscore)");
+    }
+    if (password.length < 8) {
+      return toast.error("Password must be at least 8 characters");
     }
     setLoading(true);
     const { error } = await supabase.auth.signUp({

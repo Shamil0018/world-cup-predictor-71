@@ -32,6 +32,7 @@ function LeaderboardPage() {
       .channel("lb-feed")
       .on("postgres_changes", { event: "*", schema: "public", table: "predictions" }, () => q.refetch())
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => q.refetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => q.refetch())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [q]);

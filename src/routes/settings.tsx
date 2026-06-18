@@ -21,7 +21,9 @@ function SettingsPage() {
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [avatarBlob, setAvatarBlob] = useState<Blob | null>(null);
   const [saving, setSaving] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -37,6 +39,7 @@ function SettingsPage() {
 
   const onPickFile = (f: File) => {
     if (f.size > 1024 * 1024) return toast.error("Image must be < 1 MB");
+    setProcessing(true);
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
@@ -48,7 +51,14 @@ function SettingsPage() {
         const w = img.width * scale, h = img.height * scale;
         const ctx = canvas.getContext("2d")!;
         ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-        setAvatar(canvas.toDataURL("image/jpeg", 0.82));
+        
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+        setAvatar(dataUrl);
+
+        canvas.toBlob((blob) => {
+          if (blob) setAvatarBlob(blob);
+          setProcessing(false);
+        }, "image/jpeg", 0.82);
       };
       img.src = reader.result as string;
     };
@@ -58,9 +68,42 @@ function SettingsPage() {
   const save = async () => {
     if (!user) return;
     setSaving(true);
+
+    let avatarUrlToSave = avatar;
+
+    if (avatarBlob) {
+      try {
+        const fileExt = "jpg";
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        const { data, error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(fileName, avatarBlob, {
+            upsert: true,
+            contentType: "image/jpeg"
+          });
+
+        if (uploadError) {
+          console.error("Storage upload failed:", uploadError);
+          toast.error("Avatar upload failed: " + uploadError.message);
+          setSaving(false);
+          return;
+        } else if (data) {
+          const { data: { publicUrl } } = supabase.storage
+            .from("avatars")
+            .getPublicUrl(fileName);
+          avatarUrlToSave = publicUrl;
+        }
+      } catch (err: any) {
+        console.error("Error uploading avatar:", err);
+        toast.error("Error uploading avatar: " + (err?.message || err));
+        setSaving(false);
+        return;
+      }
+    }
+
     const { error } = await supabase
       .from("profiles")
-      .update({ display_name: displayName || null, bio: bio || null, avatar_url: avatar })
+      .update({ display_name: displayName || null, bio: bio || null, avatar_url: avatarUrlToSave })
       .eq("id", user.id);
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -103,8 +146,8 @@ function SettingsPage() {
           <Label className="text-xs uppercase tracking-widest text-muted-foreground">Bio</Label>
           <Textarea value={bio} maxLength={240} onChange={(e) => setBio(e.target.value)} className="mt-1" rows={3} />
         </div>
-        <Button onClick={save} disabled={saving} className="bg-[var(--gradient-primary)] text-primary-foreground">
-          {saving ? "Saving…" : "Save"}
+        <Button onClick={save} disabled={saving || processing} className="bg-gradient-primary text-primary-foreground cursor-pointer">
+          {saving ? "Saving…" : processing ? "Processing image…" : "Save"}
         </Button>
       </div>
     </div>

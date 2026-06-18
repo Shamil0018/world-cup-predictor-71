@@ -66,7 +66,7 @@ export function PredictionDialog(p: Props) {
         )}
         <DialogFooter>
           <Button variant="ghost" onClick={() => p.onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save} disabled={saving || locked || !user} className="bg-[var(--gradient-primary)] text-primary-foreground">
+          <Button onClick={save} disabled={saving || locked || !user} className="bg-gradient-primary text-primary-foreground cursor-pointer">
             {p.existing ? "Update" : "Submit"} prediction
           </Button>
         </DialogFooter>
@@ -81,9 +81,28 @@ function ScorePicker({ label, flag, value, setValue }: { label: string; flag: st
       <div className="text-3xl mb-1">{flag}</div>
       <div className="text-sm font-medium mb-3 truncate">{label}</div>
       <div className="flex items-center justify-center gap-3">
-        <Button size="icon" variant="outline" onClick={() => setValue(Math.max(0, value - 1))}><Minus className="size-4" /></Button>
-        <div className="text-5xl font-bold tabular-nums w-16 gradient-text">{value}</div>
-        <Button size="icon" variant="outline" onClick={() => setValue(Math.min(20, value + 1))}><Plus className="size-4" /></Button>
+        <Button size="icon" variant="outline" onClick={() => setValue(Math.max(0, value - 1))} className="cursor-pointer">
+          <Minus className="size-4" />
+        </Button>
+        <input
+          type="number"
+          min={0}
+          max={20}
+          value={value}
+          onFocus={(e) => e.target.select()}
+          onChange={(e) => {
+            const v = parseInt(e.target.value);
+            if (!isNaN(v)) {
+              setValue(Math.max(0, Math.min(20, v)));
+            } else {
+              setValue(0);
+            }
+          }}
+          className="text-5xl font-bold tabular-nums w-16 text-center bg-transparent focus:outline-none border-b border-dashed border-white/20 focus:border-primary gradient-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
+        <Button size="icon" variant="outline" onClick={() => setValue(Math.min(20, value + 1))} className="cursor-pointer">
+          <Plus className="size-4" />
+        </Button>
       </div>
     </div>
   );

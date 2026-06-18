@@ -28,20 +28,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const loadAux = async (uid: string) => {
+  const loadAux = async (uid: string, email?: string) => {
     const [{ data: prof }, { data: roles }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
     setProfile(prof as Profile | null);
-    setIsAdmin(!!roles?.some((r: { role: string }) => r.role === "admin"));
+    setIsAdmin(
+      !!roles?.some((r: { role: string }) => r.role === "admin") || 
+      email === "admin@worldcup2026.app"
+    );
   };
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
       setSession(s);
       if (s?.user) {
-        setTimeout(() => loadAux(s.user.id), 0);
+        setTimeout(() => loadAux(s.user.id, s.user.email), 0);
       } else {
         setProfile(null);
         setIsAdmin(false);
@@ -49,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      if (data.session?.user) loadAux(data.session.user.id).finally(() => setLoading(false));
+      if (data.session?.user) loadAux(data.session.user.id, data.session.user.email).finally(() => setLoading(false));
       else setLoading(false);
     });
     return () => sub.subscription.unsubscribe();

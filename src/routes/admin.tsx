@@ -68,12 +68,14 @@ function AdminPage() {
     matchesQ.refetch();
   };
 
-  const saveResult = async (m: Match, hs: number, as_: number) => {
+  const saveResult = async (m: Match, hs: number | null, as_: number | null, status: string) => {
     const { error } = await supabase.from("matches").update({
-      home_score: hs, away_score: as_, status: "finished",
+      home_score: hs,
+      away_score: as_,
+      status: status as any,
     }).eq("id", m.id);
     if (error) return toast.error(error.message);
-    toast.success("Result saved · leaderboard updated");
+    toast.success("Match updated successfully");
     matchesQ.refetch();
   };
 
@@ -115,12 +117,12 @@ function AdminPage() {
             <Input value={venue} onChange={(e) => setVenue(e.target.value)} className="mt-1" />
           </div>
         </div>
-        <Button onClick={addMatch} className="mt-4 bg-[var(--gradient-primary)] text-primary-foreground">Add fixture</Button>
+        <Button onClick={addMatch} className="mt-4 bg-gradient-primary text-primary-foreground cursor-pointer">Add fixture</Button>
       </section>
 
       <section>
         <h2 className="font-bold text-lg mb-4">Enter results</h2>
-        <div className="space-y-2">
+        <div className="space-y-2 pb-16 md:pb-0">
           {matchesQ.data?.map((m) => <ResultRow key={m.id} m={m} onSave={saveResult} />)}
         </div>
       </section>
@@ -128,26 +130,66 @@ function AdminPage() {
   );
 }
 
-function ResultRow({ m, onSave }: { m: Match; onSave: (m: Match, hs: number, as_: number) => void }) {
-  const [hs, setHs] = useState<number>(m.home_score ?? 0);
-  const [as_, setAs] = useState<number>(m.away_score ?? 0);
-  const finished = m.status === "finished";
+function ResultRow({ m, onSave }: { m: Match; onSave: (m: Match, hs: number | null, as_: number | null, status: string) => void }) {
+  const [hs, setHs] = useState<string>(m.home_score !== null ? m.home_score.toString() : "");
+  const [as_, setAs] = useState<string>(m.away_score !== null ? m.away_score.toString() : "");
+  const [status, setStatus] = useState<string>(m.status);
+
+  const handleSave = () => {
+    const homeScore = hs === "" ? null : parseInt(hs);
+    const awayScore = as_ === "" ? null : parseInt(as_);
+    onSave(m, homeScore, awayScore, status);
+  };
+
   return (
-    <div className="glass rounded-2xl p-4 flex flex-wrap items-center gap-3">
-      <div className="flex-1 min-w-[200px] flex items-center gap-2">
-        <span className="text-xl">{m.home_team.flag_emoji}</span>
-        <span className="font-medium">{m.home_team.code}</span>
-        <span className="text-muted-foreground">vs</span>
-        <span className="font-medium">{m.away_team.code}</span>
-        <span className="text-xl">{m.away_team.flag_emoji}</span>
+    <div className="glass rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+      <div className="flex items-center gap-3 min-w-[220px]">
+        <span className="text-2xl">{m.home_team.flag_emoji}</span>
+        <span className="font-bold tracking-wider">{m.home_team.code}</span>
+        <span className="text-muted-foreground text-xs">vs</span>
+        <span className="font-bold tracking-wider">{m.away_team.code}</span>
+        <span className="text-2xl">{m.away_team.flag_emoji}</span>
       </div>
-      <div className="text-xs text-muted-foreground">{new Date(m.kickoff_at).toLocaleString()}</div>
-      <Input type="number" value={hs} onChange={(e) => setHs(parseInt(e.target.value || "0"))} className="w-16" />
-      <span>–</span>
-      <Input type="number" value={as_} onChange={(e) => setAs(parseInt(e.target.value || "0"))} className="w-16" />
-      <Button size="sm" onClick={() => onSave(m, hs, as_)} variant={finished ? "outline" : "default"}>
-        {finished ? "Update" : "Save result"}
-      </Button>
+
+      <div className="text-xs text-muted-foreground">
+        {new Date(m.kickoff_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Input
+          type="number"
+          placeholder="—"
+          value={hs}
+          onChange={(e) => setHs(e.target.value)}
+          className="w-14 text-center h-9 bg-white/5 border-white/10"
+        />
+        <span className="text-muted-foreground">–</span>
+        <Input
+          type="number"
+          placeholder="—"
+          value={as_}
+          onChange={(e) => setAs(e.target.value)}
+          className="w-14 text-center h-9 bg-white/5 border-white/10"
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="w-32 h-9 bg-white/5 border-white/10 text-xs">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="scheduled">Scheduled</SelectItem>
+            <SelectItem value="live">🔴 Live</SelectItem>
+            <SelectItem value="finished">🏁 Finished</SelectItem>
+            <SelectItem value="postponed">Postponed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Button size="sm" onClick={handleSave} className="h-9 cursor-pointer">
+          Save
+        </Button>
+      </div>
     </div>
   );
 }

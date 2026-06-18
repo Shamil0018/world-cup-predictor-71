@@ -32,7 +32,7 @@ export function MatchCard({
   return (
     <button
       onClick={onClick}
-      className="group glass rounded-2xl p-5 text-left w-full transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-glow)] hover:border-primary/30"
+      className="group bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-left w-full transition-all duration-300 hover:bg-white/[0.04] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgb(0,0,0,0.15)] hover:border-primary/30 cursor-pointer"
     >
       <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
         <span className="uppercase tracking-widest">{match.stage}</span>

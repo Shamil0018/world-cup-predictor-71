@@ -35,7 +35,7 @@
   --color-pitch: var(--pitch);
   --color-gold: var(--gold);
 
-  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-display: "Outfit", system-ui, sans-serif;
 }
 
 :root {
@@ -123,4 +123,12 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+@utility bg-gradient-primary {
+  background-image: var(--gradient-primary);
+}
+
+@utility bg-gradient-gold {
+  background-image: var(--gradient-gold);
 }
