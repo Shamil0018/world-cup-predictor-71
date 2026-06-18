@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
+import { CustomAvatar, CUSTOM_AVATARS } from "@/components/CustomAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -117,22 +118,46 @@ function SettingsPage() {
     <div className="container mx-auto px-4 py-10 max-w-xl">
       <h1 className="text-3xl font-bold mb-6">Edit profile</h1>
       <div className="glass rounded-3xl p-6 space-y-6">
-        <div className="flex items-center gap-5">
-          <Avatar className="size-20 ring-2 ring-white/10">
-            <AvatarImage src={avatar ?? undefined} />
-            <AvatarFallback className="bg-primary/20 text-primary">{profile.username.slice(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <label className="cursor-pointer">
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => e.target.files?.[0] && onPickFile(e.target.files[0])}
-            />
-            <span className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm">
-              <Upload className="size-4" /> Change avatar
-            </span>
-          </label>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-5">
+            <UserAvatar avatarUrl={avatar} username={profile.username} className="size-20" />
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && onPickFile(e.target.files[0])}
+              />
+              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm">
+                <Upload className="size-4" /> Upload Custom Photo
+              </span>
+            </label>
+          </div>
+
+          <div>
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground mb-3 block">Or select a legend avatar</Label>
+            <div className="grid grid-cols-5 gap-3">
+              {CUSTOM_AVATARS.map((av) => {
+                const isSelected = avatar === `custom://${av.id}`;
+                return (
+                  <button
+                    key={av.id}
+                    type="button"
+                    onClick={() => {
+                      setAvatar(`custom://${av.id}`);
+                      setAvatarBlob(null); // Clear file upload
+                    }}
+                    className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition hover:scale-105 cursor-pointer ${
+                      isSelected ? "border-primary shadow-[var(--shadow-glow)]" : "border-white/5 hover:border-white/20"
+                    }`}
+                    title={`${av.name} (${av.team})`}
+                  >
+                    <CustomAvatar id={av.id} className="w-full h-full" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
         <div>
           <Label className="text-xs uppercase tracking-widest text-muted-foreground">Username</Label>

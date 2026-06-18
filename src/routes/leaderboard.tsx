@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Crown, Medal, Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/leaderboard")({
@@ -68,10 +68,7 @@ function LeaderboardPage() {
                    i === 2 ? <Medal className="size-6 text-[oklch(0.65_0.10_50)] mx-auto" /> :
                    <span className="text-muted-foreground tabular-nums">#{i + 1}</span>}
                 </div>
-                <Avatar className="size-10 ring-1 ring-white/10">
-                  <AvatarImage src={r.avatar_url ?? undefined} />
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs">{r.username.slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
+                <UserAvatar avatarUrl={r.avatar_url} username={r.username} className="size-10" />
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{r.username}</div>
                   <div className="text-xs text-muted-foreground">{r.matches_scored} match{r.matches_scored === 1 ? "" : "es"} scored</div>

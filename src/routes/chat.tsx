@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Smile, Send } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
@@ -135,10 +135,7 @@ function ChatPage() {
             <Link to="/auth" className="flex-1 text-center text-sm py-2 rounded-lg bg-white/5 text-muted-foreground hover:text-foreground">Sign in to chat</Link>
           ) : (
             <>
-              <Avatar className="size-8 ring-1 ring-white/10">
-                <AvatarImage src={profile?.avatar_url ?? undefined} />
-                <AvatarFallback className="bg-primary/20 text-primary text-xs">{(profile?.username ?? "??").slice(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
+              <UserAvatar avatarUrl={profile?.avatar_url} username={profile?.username ?? "unknown"} className="size-8" />
               <Input value={text} maxLength={500} onChange={(e) => setText(e.target.value)} placeholder="Say something..." className="flex-1" />
               <Popover>
                 <PopoverTrigger asChild>
@@ -165,10 +162,7 @@ function MsgRow({ m, mine }: { m: Msg; mine: boolean }) {
   return (
     <div className={`flex items-start gap-3 ${mine ? "flex-row-reverse" : ""}`}>
       <Link to="/u/$username" params={{ username: m.profile?.username ?? "" }}>
-        <Avatar className="size-8 ring-1 ring-white/10">
-          <AvatarImage src={m.profile?.avatar_url ?? undefined} />
-          <AvatarFallback className="bg-primary/20 text-primary text-xs">{(m.profile?.username ?? "??").slice(0, 2).toUpperCase()}</AvatarFallback>
-        </Avatar>
+        <UserAvatar avatarUrl={m.profile?.avatar_url} username={m.profile?.username ?? "unknown"} className="size-8" />
       </Link>
       <div className={`max-w-[75%] ${mine ? "text-right" : ""}`}>
         <div className="text-[11px] text-muted-foreground">

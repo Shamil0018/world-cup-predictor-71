@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { toast } from "sonner";
 import { Sparkles, Trophy, Crown, Medal, Send, MessageSquare, ChevronRight } from "lucide-react";
 
@@ -242,11 +242,7 @@ function Index() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!user ? (
-              <Button asChild size="sm" className="bg-gradient-primary text-primary-foreground text-xs font-semibold h-8 cursor-pointer shadow-[var(--shadow-glow)] rounded-xl">
-                <Link to="/auth">ENTER PORTAL</Link>
-              </Button>
-            ) : (
+            {user && (
               <p className="text-xs uppercase tracking-wider text-muted-foreground">
                 Welcome back, <span className="font-semibold text-primary">@{profile?.username}</span>
               </p>
@@ -295,12 +291,7 @@ function Index() {
                        i === 2 ? <Medal className="size-4 text-[oklch(0.65_0.10_50)] mx-auto" /> :
                        <span className="text-muted-foreground font-mono">#{i + 1}</span>}
                     </div>
-                    <Avatar className="size-7 ring-1 ring-white/10 shrink-0">
-                      <AvatarImage src={r.avatar_url ?? undefined} />
-                      <AvatarFallback className="bg-primary/20 text-primary text-[10px]">
-                        {r.username.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar avatarUrl={r.avatar_url} username={r.username} className="size-7" />
                     <div className="flex-1 min-w-0 text-xs">
                       <div className="font-semibold truncate">{r.username}</div>
                       <div className="text-[10px] text-muted-foreground">{r.matches_scored} matches</div>
@@ -334,12 +325,7 @@ function Index() {
               ) : (
                 homeMsgs.map((m) => (
                   <div key={m.id} className="flex items-start gap-2 max-w-full">
-                    <Avatar className="size-6 ring-1 ring-white/10 shrink-0 mt-0.5">
-                      <AvatarImage src={m.profile?.avatar_url ?? undefined} />
-                      <AvatarFallback className="bg-primary/20 text-primary text-[8px]">
-                        {(m.profile?.username ?? "??").slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar avatarUrl={m.profile?.avatar_url} username={m.profile?.username ?? "unknown"} className="size-6 mt-0.5" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-1.5">
                         <span className="font-bold text-[10px] text-primary truncate max-w-[90px]">

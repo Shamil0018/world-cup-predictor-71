@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { predictionError } from "@/lib/format";
 
 export const Route = createFileRoute("/u/$username")({
@@ -77,10 +77,7 @@ function ProfilePage() {
   return (
     <div className="container mx-auto px-4 py-10 max-w-3xl">
       <div className="glass rounded-3xl p-8 flex flex-col md:flex-row items-center gap-6">
-        <Avatar className="size-24 ring-2 ring-white/10">
-          <AvatarImage src={prof.avatar_url ?? undefined} />
-          <AvatarFallback className="bg-primary/20 text-primary text-xl">{prof.username.slice(0, 2).toUpperCase()}</AvatarFallback>
-        </Avatar>
+        <UserAvatar avatarUrl={prof.avatar_url} username={prof.username} className="size-24" />
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-3xl font-bold">{prof.display_name ?? prof.username}</h1>
           <p className="text-muted-foreground">@{prof.username}</p>

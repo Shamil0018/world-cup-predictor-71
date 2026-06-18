@@ -1,7 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Trophy, MessageCircle, ListOrdered, Calendar, Shield, LogOut, User as UserIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -56,12 +56,7 @@ export function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 hover:bg-white/5 transition">
-                    <Avatar className="size-8 ring-1 ring-white/10">
-                      <AvatarImage src={profile.avatar_url ?? undefined} />
-                      <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                        {profile.username.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar avatarUrl={profile.avatar_url} username={profile.username} className="size-8" />
                     <span className="hidden sm:inline text-sm font-medium">{profile.username}</span>
                   </button>
                 </DropdownMenuTrigger>
