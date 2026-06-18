@@ -18,6 +18,7 @@ export const CUSTOM_AVATARS: CustomAvatarConfig[] = [
   { id: "yamal", name: "Lamine Yamal", player: "L. Yamal (#19)", team: "Spain" },
   { id: "chiesa", name: "Federico Chiesa", player: "F. Chiesa (#14)", team: "Italy" },
   { id: "modric", name: "Luka Modrić", player: "L. Modrić (#10)", team: "Croatia" },
+  { id: "pierrot", name: "Frantzdy Pierrot", player: "F. Pierrot (#20)", team: "Haiti" },
 ];
 
 export function CustomAvatar({ id, className = "size-8" }: { id: string; className?: string }) {
@@ -350,6 +351,42 @@ export function CustomAvatar({ id, className = "size-8" }: { id: string; classNa
             <path d="M 34 38 Q 50 36 66 38" stroke="#111111" strokeWidth="2" fill="none" />
             {/* Number 10 */}
             <text x="50" y="93" fontSize="12" fontWeight="900" textAnchor="middle" fill="#0000FF" fontFamily="sans-serif">10</text>
+          </>
+        );
+
+      case "pierrot": // Haiti #20
+        return (
+          <>
+            <defs>
+              <linearGradient id="grad-pierrot" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#002060" />
+                <stop offset="50%" stopColor="#D21034" />
+                <stop offset="100%" stopColor="#002060" />
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="50" fill="url(#grad-pierrot)" />
+            {/* Torso/Shirt */}
+            <path d="M 15 100 Q 15 75 35 73 L 65 73 Q 85 75 85 100 Z" fill="#002060" />
+            <path d="M 15 85 L 25 81 L 28 100 Z" fill="#D21034" /> {/* Red sleeve detail */}
+            <path d="M 85 85 L 75 81 L 72 100 Z" fill="#D21034" />
+            {/* Collar */}
+            <path d="M 40 73 Q 50 82 60 73 Z" fill="#D21034" />
+            {/* Neck */}
+            <rect x="43" y="58" width="14" height="16" fill={skinDarker} />
+            {/* Face */}
+            <circle cx="50" cy="46" r="16" fill={skinDarker} />
+            {/* Eyes */}
+            <circle cx="44" cy="46" r="1.5" fill="#111" />
+            <circle cx="56" cy="46" r="1.5" fill="#111" />
+            {/* Hair - Dreadlocks/Curly */}
+            <path d="M 33 41 C 32 32 37 25 50 25 C 63 25 68 32 67 41 C 64 42 60 37 50 37 C 40 37 36 42 33 41 Z" fill="#111111" />
+            <circle cx="42" cy="23" r="2" fill="#111" />
+            <circle cx="46" cy="22" r="2.5" fill="#111" />
+            <circle cx="50" cy="21" r="2.5" fill="#111" />
+            <circle cx="54" cy="22" r="2.5" fill="#111" />
+            <circle cx="58" cy="23" r="2" fill="#111" />
+            {/* Number 20 */}
+            <text x="50" y="93" fontSize="11" fontWeight="900" textAnchor="middle" fill="#FFFFFF" fontFamily="sans-serif">20</text>
           </>
         );
 
