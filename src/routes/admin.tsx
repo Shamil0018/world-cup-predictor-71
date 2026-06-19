@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Shield, Plus, Trash2 } from "lucide-react";
-import { seedTeamsFn } from "@/lib/seed.server";
+import { seedTeamsFn, deleteUserFn } from "@/lib/seed.server";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · PredictCup" }] }),
@@ -72,6 +72,42 @@ function AdminPage() {
       setSeeding(false);
     }
   };
+
+  const profilesQ = useQuery({
+    queryKey: ["admin-profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, username, display_name, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleDeleteUser = async (id: string) => {
+    if (id === user?.id) {
+      return toast.error("You cannot delete yourself!");
+    }
+    const confirmDelete = window.confirm("Are you sure you want to delete this user completely? This will delete their profile, predictions, and chat history.");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await deleteUserFn({ data: id });
+      if (res.success) {
+        toast.success("User deleted successfully!");
+        profilesQ.refetch();
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to delete user");
+    }
+  };
+
+  useEffect(() => {
+    if (teamsQ.data && teamsQ.data.length < 48 && !seeding) {
+      handleSeed();
+    }
+  }, [teamsQ.data, seeding]);
   const [kickoff, setKickoff] = useState(""); const [venue, setVenue] = useState(""); const [stage, setStage] = useState("group");
 
   const addMatch = async () => {
@@ -158,10 +194,35 @@ function AdminPage() {
         <Button onClick={addMatch} className="mt-4 bg-gradient-primary text-primary-foreground cursor-pointer">Add fixture</Button>
       </section>
 
-      <section>
+      <section className="mb-10">
         <h2 className="font-bold text-lg mb-4">Enter results</h2>
-        <div className="space-y-2 pb-16 md:pb-0">
+        <div className="space-y-2">
           {matchesQ.data?.map((m) => <ResultRow key={m.id} m={m} onSave={saveResult} onDelete={deleteMatch} />)}
+        </div>
+      </section>
+
+      <section className="glass rounded-3xl p-6 pb-16 md:pb-6">
+        <h2 className="font-bold text-lg mb-4">Manage Users</h2>
+        <div className="space-y-3">
+          {profilesQ.data?.map((p) => (
+            <div key={p.id} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition">
+              <div>
+                <div className="font-bold">{p.display_name || p.username}</div>
+                <div className="text-xs text-muted-foreground">@{p.username}</div>
+              </div>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => handleDeleteUser(p.id)}
+                className="cursor-pointer"
+              >
+                Delete User
+              </Button>
+            </div>
+          ))}
+          {profilesQ.data?.length === 0 && (
+            <p className="text-muted-foreground text-sm">No users found.</p>
+          )}
         </div>
       </section>
     </div>

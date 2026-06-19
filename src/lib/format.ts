@@ -21,9 +21,11 @@ export function timeUntil(iso: string) {
 }
 
 export function isLocked(kickoffIso: string) {
-  return new Date(kickoffIso).getTime() - Date.now() < 30 * 60 * 1000;
+  return new Date(kickoffIso).getTime() - Date.now() < 0;
 }
 
 export function predictionError(ph: number, pa: number, ah: number, aa: number) {
-  return Math.abs(ph - ah) + Math.abs(pa - aa) + Math.abs(ph - pa - (ah - aa));
+  const diff = Math.abs(ph - ah) + Math.abs(pa - aa) + Math.abs(ph - pa - (ah - aa));
+  const correctOutcome = (ah > aa && ph > pa) || (ah < aa && ph < pa) || (ah === aa && ph === pa);
+  return diff + (correctOutcome ? 0 : 2);
 }

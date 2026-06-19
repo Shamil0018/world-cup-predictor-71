@@ -72,6 +72,21 @@ function Index() {
   });
 
   useEffect(() => {
+    const checkAndSeed = async () => {
+      try {
+        const { count } = await supabase.from("teams").select("*", { count: "exact", head: true });
+        if (count !== null && count < 48) {
+          const { seedTeamsFn } = await import("@/lib/seed.server");
+          await seedTeamsFn();
+        }
+      } catch (err) {
+        console.error("Auto seed failed:", err);
+      }
+    };
+    checkAndSeed();
+  }, []);
+
+  useEffect(() => {
     const ch = supabase
       .channel("matches-feed")
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => matchesQ.refetch())
@@ -128,8 +143,8 @@ function Index() {
       const { data, error } = await supabase
         .from("leaderboard")
         .select("*")
+        .order("total_points", { ascending: false })
         .order("matches_scored", { ascending: false })
-        .order("total_error", { ascending: true })
         .limit(5);
       if (error) throw error;
       return data;
@@ -294,11 +309,11 @@ function Index() {
                     <UserAvatar avatarUrl={r.avatar_url} username={r.username} className="size-7" />
                     <div className="flex-1 min-w-0 text-xs">
                       <div className="font-semibold truncate">{r.username}</div>
-                      <div className="text-[10px] text-muted-foreground">{r.matches_scored} matches</div>
+                      <div className="text-[10px] text-muted-foreground">{(r as any).games_predicted || 0} pred · {r.matches_scored || 0} scored</div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-bold font-mono text-primary text-sm">{r.total_error}</div>
-                      <div className="text-[8px] uppercase text-muted-foreground">error</div>
+                      <div className="font-bold font-mono text-primary text-sm">{(r as any).total_points || 0}</div>
+                      <div className="text-[8px] uppercase text-muted-foreground">pts</div>
                     </div>
                   </Link>
                 ))}

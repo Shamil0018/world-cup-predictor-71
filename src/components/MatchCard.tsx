@@ -79,7 +79,7 @@ export function MatchCard({
         {!finished && (
           <span className={`flex items-center gap-1 ${locked ? "text-destructive" : "text-primary"}`}>
             {locked ? <Lock className="size-3" /> : null}
-            {locked ? "Locked" : `Locks in ${timeUntil(new Date(new Date(match.kickoff_at).getTime() - 30 * 60000).toISOString())}`}
+            {locked ? "Locked" : `Locks in ${timeUntil(match.kickoff_at)}`}
           </span>
         )}
       </div>

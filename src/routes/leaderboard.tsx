@@ -10,7 +10,7 @@ export const Route = createFileRoute("/leaderboard")({
   component: LeaderboardPage,
 });
 
-type Row = { user_id: string; username: string; avatar_url: string | null; total_error: number; matches_scored: number };
+type Row = { user_id: string; username: string; avatar_url: string | null; total_points: number; games_predicted: number; matches_scored: number };
 
 function LeaderboardPage() {
   const q = useQuery({
@@ -19,8 +19,8 @@ function LeaderboardPage() {
       const { data, error } = await supabase
         .from("leaderboard")
         .select("*")
+        .order("total_points", { ascending: false })
         .order("matches_scored", { ascending: false })
-        .order("total_error", { ascending: true })
         .limit(100);
       if (error) throw error;
       return data as Row[];
@@ -46,7 +46,7 @@ function LeaderboardPage() {
           <Trophy className="size-3 text-accent" /> Live rankings
         </div>
         <h1 className="mt-4 text-4xl md:text-5xl font-bold">Global <span className="gradient-gold-text">leaderboard</span></h1>
-        <p className="text-muted-foreground mt-2">Lower total error is better.</p>
+        <p className="text-muted-foreground mt-2">Higher total points is better.</p>
       </div>
 
       {q.isLoading ? (
@@ -71,11 +71,11 @@ function LeaderboardPage() {
                 <UserAvatar avatarUrl={r.avatar_url} username={r.username} className="size-10" />
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{r.username}</div>
-                  <div className="text-xs text-muted-foreground">{r.matches_scored} match{r.matches_scored === 1 ? "" : "es"} scored</div>
+                  <div className="text-xs text-muted-foreground">{r.games_predicted} predicted · {r.matches_scored} scored</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold tabular-nums gradient-text">{r.total_error}</div>
-                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">error</div>
+                  <div className="text-2xl font-bold tabular-nums gradient-text">{r.total_points}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">points</div>
                 </div>
               </Link>
             </li>

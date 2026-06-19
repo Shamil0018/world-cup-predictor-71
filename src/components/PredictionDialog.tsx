@@ -57,7 +57,7 @@ export function PredictionDialog(p: Props) {
         {!user ? (
           <p className="text-muted-foreground">Please sign in to predict.</p>
         ) : locked ? (
-          <p className="text-destructive">Predictions are locked (less than 30 minutes to kickoff).</p>
+          <p className="text-destructive">Predictions are locked (match has already started).</p>
         ) : (
           <div className="grid grid-cols-2 gap-6 py-4">
             <ScorePicker label={p.homeName} flag={p.homeFlag} value={home} setValue={setHome} />

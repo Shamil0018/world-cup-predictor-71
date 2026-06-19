@@ -31,11 +31,11 @@ function ProfilePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("leaderboard")
-        .select("user_id,total_error,matches_scored")
-        .order("matches_scored", { ascending: false })
-        .order("total_error", { ascending: true });
+        .select("user_id,total_points,matches_scored")
+        .order("total_points", { ascending: false })
+        .order("matches_scored", { ascending: false });
       if (error) throw error;
-      return data as { user_id: string; total_error: number; matches_scored: number }[];
+      return data as { user_id: string; total_points: number; matches_scored: number }[];
     },
   });
 
@@ -85,7 +85,7 @@ function ProfilePage() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Stat label="Rank" value={rank ? `#${rank}` : "—"} accent />
-          <Stat label="Total error" value={lbRow?.total_error ?? 0} />
+          <Stat label="Total points" value={lbRow?.total_points ?? 0} />
         </div>
       </div>
 
@@ -110,8 +110,8 @@ function ProfilePage() {
               </div>
               {finished && (
                 <div className="text-right">
-                  <div className="text-lg font-bold gradient-text tabular-nums">{err}</div>
-                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">error</div>
+                  <div className="text-lg font-bold gradient-text tabular-nums">+{20 - (err ?? 0)}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">points</div>
                 </div>
               )}
             </div>
