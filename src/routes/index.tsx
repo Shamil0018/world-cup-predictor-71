@@ -412,36 +412,6 @@ function Index() {
                 )}
               </div>
 
-              {/* "How it works" button */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="rounded-xl border-white/10 h-10 cursor-pointer">
-                    <Sparkles className="size-3.5 mr-1.5 text-accent" /> Scoring Rules
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 glass border-white/10 p-5 rounded-2xl z-50">
-                  <h3 className="font-bold text-sm mb-2 flex items-center gap-1.5 text-[var(--gold)]">
-                    <Trophy className="size-4 text-accent" /> Scoring Formula
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Points are calculated as absolute prediction error. <strong>Lower error is better!</strong>
-                  </p>
-                  <div className="mt-3 space-y-2 text-[11px]">
-                    <div className="p-2 rounded-lg bg-white/5 border border-white/5 font-mono">
-                      <span className="font-semibold text-primary">Formula:</span><br />
-                      <code>|HomeErr| + |AwayErr| + |GD_Err|</code>
-                    </div>
-                    <p className="text-muted-foreground">
-                      For example, if you predict <strong>2–1</strong>:
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 text-muted-foreground pl-1">
-                      <li>Actual score is <strong>2–1</strong>: Error = 0 <span className="text-success font-semibold">(Perfect score)</span></li>
-                      <li>Actual score is <strong>1–0</strong>: Error = 1 + 1 + 0 = 2</li>
-                      <li>Actual score is <strong>0–3</strong>: Error = 2 + 2 + 4 = 8</li>
-                    </ul>
-                  </div>
-                </PopoverContent>
-              </Popover>
             </div>
           </div>
 
