@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Shield, Plus, Trash2 } from "lucide-react";
+import { seedTeamsFn } from "@/lib/seed.server";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · PredictCup" }] }),
@@ -55,6 +56,22 @@ function AdminPage() {
 
   // Add match form
   const [home, setHome] = useState(""); const [away, setAway] = useState("");
+  const [seeding, setSeeding] = useState(false);
+
+  const handleSeed = async () => {
+    setSeeding(true);
+    try {
+      const res = await seedTeamsFn();
+      if (res.success) {
+        toast.success("Successfully seeded 48 teams list & granted DB admin role!");
+        teamsQ.refetch();
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to seed teams");
+    } finally {
+      setSeeding(false);
+    }
+  };
   const [kickoff, setKickoff] = useState(""); const [venue, setVenue] = useState(""); const [stage, setStage] = useState("group");
 
   const addMatch = async () => {
@@ -94,8 +111,18 @@ function AdminPage() {
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-4xl">
-      <div className="flex items-center gap-2 mb-8">
-        <Shield className="text-accent" /> <h1 className="text-3xl font-bold">Admin</h1>
+      <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
+        <div className="flex items-center gap-2">
+          <Shield className="text-accent" /> <h1 className="text-3xl font-bold">Admin</h1>
+        </div>
+        <Button 
+          onClick={handleSeed} 
+          disabled={seeding} 
+          variant="outline" 
+          className="border-white/10 hover:bg-white/5 cursor-pointer text-xs"
+        >
+          {seeding ? "Seeding 48 Teams..." : "Seed 48 Teams List"}
+        </Button>
       </div>
 
       <section className="glass rounded-3xl p-6 mb-10">
