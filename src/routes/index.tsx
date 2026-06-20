@@ -488,7 +488,7 @@ function Index() {
                     </h3>
                   </div>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
-                    🔮 {nextMatchStats.total} {nextMatchStats.total === 1 ? "person" : "people"} predicted
+                    🔮 {nextMatchStats.total > 0 ? `${nextMatchStats.total} ${nextMatchStats.total === 1 ? "person" : "people"}` : "* people"} predicted
                   </div>
                 </div>
 
