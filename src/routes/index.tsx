@@ -537,7 +537,15 @@ function Index() {
 
                 {/* Predictor Percentage Bars */}
                 <div className="mt-5 space-y-2">
-                  {nextMatchStats.total === 0 ? (
+                  {!user ? (
+                    <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest">
+                      🔒 Sign in & add prediction to see live predictor
+                    </div>
+                  ) : !predMap.has(nextMatch.id) ? (
+                    <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest">
+                      🔒 Add prediction to see live predictor
+                    </div>
+                  ) : nextMatchStats.total === 0 ? (
                     <div className="text-center py-2 text-xs text-muted-foreground bg-white/[0.01] rounded-xl border border-dashed border-white/5">
                       No predictions locked in yet. Be the first to predict!
                     </div>
