@@ -83,40 +83,24 @@ function Index() {
     enabled: !!nextMatch,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("predictions")
-        .select("predicted_home,predicted_away")
-        .eq("match_id", nextMatch!.id);
+        .rpc("get_match_prediction_stats", { _match_id: nextMatch!.id });
       if (error) throw error;
-      return data;
+      return data as { total: number; home_wins: number; draws: number; away_wins: number };
     },
   });
 
   const nextMatchStats = useMemo(() => {
-    const preds = nextMatchPredsQ.data ?? [];
-    const total = preds.length;
-    if (total === 0) {
-      return { total, homeWinPct: 0, drawPct: 0, awayWinPct: 0 };
+    const stats = nextMatchPredsQ.data;
+    if (!stats || stats.total === 0) {
+      return { total: 0, homeWinPct: 0, drawPct: 0, awayWinPct: 0 };
     }
 
-    let homeWins = 0;
-    let draws = 0;
-    let awayWins = 0;
-
-    preds.forEach((p) => {
-      if (p.predicted_home > p.predicted_away) {
-        homeWins++;
-      } else if (p.predicted_home < p.predicted_away) {
-        awayWins++;
-      } else {
-        draws++;
-      }
-    });
-
+    const total = stats.total;
     return {
       total,
-      homeWinPct: Math.round((homeWins / total) * 100),
-      drawPct: Math.round((draws / total) * 100),
-      awayWinPct: Math.round((awayWins / total) * 100),
+      homeWinPct: Math.round((stats.home_wins / total) * 100),
+      drawPct: Math.round((stats.draws / total) * 100),
+      awayWinPct: Math.round((stats.away_wins / total) * 100),
     };
   }, [nextMatchPredsQ.data]);
 
