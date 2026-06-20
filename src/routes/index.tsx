@@ -133,14 +133,17 @@ function Index() {
       .channel("next-match-preds-feed")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "predictions", filter: `match_id=eq.${nextMatch.id}` },
-        () => nextMatchPredsQ.refetch()
+        { event: "*", schema: "public", table: "predictions" },
+        () => {
+          nextMatchPredsQ.refetch();
+          predsQ.refetch();
+        }
       )
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [nextMatch, nextMatchPredsQ]);
+  }, [nextMatch, nextMatchPredsQ, predsQ]);
 
   const [filter, setFilter] = useState<"all" | "upcoming" | "finished">("all");
   const [search, setSearch] = useState("");
@@ -546,8 +549,8 @@ function Index() {
                       🔒 Add prediction to see live predictor
                     </div>
                   ) : nextMatchStats.total === 0 ? (
-                    <div className="text-center py-2 text-xs text-muted-foreground bg-white/[0.01] rounded-xl border border-dashed border-white/5">
-                      No predictions locked in yet. Be the first to predict!
+                    <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest font-mono animate-pulse">
+                      ⚡ Live probability loading...
                     </div>
                   ) : (
                     <div>
