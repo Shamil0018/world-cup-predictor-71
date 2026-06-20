@@ -57,7 +57,6 @@ function LeaderboardPage() {
           <Trophy className="size-3 text-accent" /> Live rankings
         </div>
         <h1 className="mt-4 text-4xl md:text-5xl font-bold">Global <span className="gradient-gold-text">leaderboard</span></h1>
-        <p className="text-muted-foreground mt-2">Higher total points is better.</p>
       </div>
 
       {q.isLoading ? (

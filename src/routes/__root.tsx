@@ -110,7 +110,7 @@ function RootComponent() {
             <Outlet />
           </main>
           <footer className="border-t border-white/5 py-6 text-center text-xs text-muted-foreground">
-            PredictCup · FIFA World Cup 2026 · Lower error wins
+            PredictCup · FIFA World Cup 2026
           </footer>
         </div>
         <Toaster />
