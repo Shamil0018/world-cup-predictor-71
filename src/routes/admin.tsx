@@ -115,12 +115,12 @@ function AdminPage() {
   }, [predictionsQ.data, profilesQ.data, matchesQ.data]);
 
   const removePrediction = async (id: string) => {
-    const confirmRemove = window.confirm("Are you sure you want to remove this prediction? This will remove it from the leaderboard.");
+    const confirmRemove = window.confirm("Are you sure you want to remove this prediction from the leaderboard? The points for this match will not be counted.");
     if (!confirmRemove) return;
     
     const { error } = await supabase.from("predictions").delete().eq("id", id);
     if (error) return toast.error(error.message);
-    toast.success("Prediction removed successfully");
+    toast.success("Prediction removed from leaderboard");
     predictionsQ.refetch();
   };
 
@@ -271,7 +271,7 @@ function AdminPage() {
                     onClick={() => removePrediction(p.id)}
                     className="cursor-pointer h-8 text-xs"
                   >
-                    Remove
+                    Remove from leaderboard
                   </Button>
                 </div>
               </div>
