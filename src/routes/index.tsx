@@ -83,9 +83,24 @@ function Index() {
     enabled: !!nextMatch,
     queryFn: async () => {
       const { data, error } = await supabase
-        .rpc("get_match_prediction_stats", { _match_id: nextMatch!.id });
+        .from("predictions")
+        .select("predicted_home,predicted_away")
+        .eq("match_id", nextMatch!.id);
       if (error) throw error;
-      return data as { total: number; home_wins: number; draws: number; away_wins: number };
+
+      const list = data || [];
+      const total = list.length;
+      let home_wins = 0;
+      let draws = 0;
+      let away_wins = 0;
+
+      list.forEach((p) => {
+        if (p.predicted_home > p.predicted_away) home_wins++;
+        else if (p.predicted_home === p.predicted_away) draws++;
+        else away_wins++;
+      });
+
+      return { total, home_wins, draws, away_wins };
     },
   });
 
