@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -84,6 +84,45 @@ function AdminPage() {
       return data;
     },
   });
+
+  const predictionsQ = useQuery({
+    queryKey: ["admin-predictions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("predictions")
+        .select("id,predicted_home,predicted_away,user_id,match_id,created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const predictionList = useMemo(() => {
+    if (!predictionsQ.data || !profilesQ.data || !matchesQ.data) return [];
+    
+    const profileMap = new Map(profilesQ.data.map(p => [p.id, p]));
+    const matchMap = new Map(matchesQ.data.map(m => [m.id, m]));
+    
+    return predictionsQ.data.map(p => {
+      const prof = profileMap.get(p.user_id);
+      const match = matchMap.get(p.match_id);
+      return {
+        ...p,
+        username: prof?.username ?? "Unknown User",
+        match
+      };
+    }).filter(p => p.match);
+  }, [predictionsQ.data, profilesQ.data, matchesQ.data]);
+
+  const removePrediction = async (id: string) => {
+    const confirmRemove = window.confirm("Are you sure you want to remove this prediction? This will remove it from the leaderboard.");
+    if (!confirmRemove) return;
+    
+    const { error } = await supabase.from("predictions").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Prediction removed successfully");
+    predictionsQ.refetch();
+  };
 
   const handleDeleteUser = async (id: string) => {
     if (id === user?.id) {
@@ -199,6 +238,46 @@ function AdminPage() {
         <div className="space-y-2">
           {matchesQ.data?.map((m) => <ResultRow key={m.id} m={m} onSave={saveResult} onDelete={deleteMatch} />)}
         </div>
+      </section>
+
+      <section className="glass rounded-3xl p-6 mb-10">
+        <h2 className="font-bold text-lg mb-4">Manage Predictions ({predictionList.length})</h2>
+        {predictionsQ.isLoading || profilesQ.isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading predictions...</p>
+        ) : predictionList.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No predictions submitted yet.</p>
+        ) : (
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+            {predictionList.map((p: any) => (
+              <div key={p.id} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition flex-wrap gap-4">
+                <div className="min-w-[180px]">
+                  <div className="font-bold text-primary">@{p.username}</div>
+                  <div className="text-xs text-muted-foreground">
+                    predicted {p.predicted_home}–{p.predicted_away}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span>{p.match.home_team.flag_emoji} {p.match.home_team.code}</span>
+                  <span className="text-muted-foreground">vs</span>
+                  <span>{p.match.away_team.flag_emoji} {p.match.away_team.code}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`text-[10px] uppercase tracking-wider font-semibold ${p.match.status === "finished" ? "text-success" : "text-muted-foreground"}`}>
+                    {p.match.status}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => removePrediction(p.id)}
+                    className="cursor-pointer h-8 text-xs"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="glass rounded-3xl p-6 pb-16 md:pb-6">

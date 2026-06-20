@@ -151,15 +151,7 @@ function Index() {
     }
   });
 
-  useEffect(() => {
-    const ch = supabase
-      .channel("lb-home-feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "predictions" }, () => lbSnapshotQ.refetch())
-      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => lbSnapshotQ.refetch())
-      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => lbSnapshotQ.refetch())
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [lbSnapshotQ]);
+
 
   // 2. Mini Chat Feed
   const [homeMsgs, setHomeMsgs] = useState<Msg[]>([]);
@@ -478,6 +470,7 @@ function Index() {
           homeFlag={openMatch.home_team.flag_emoji}
           awayFlag={openMatch.away_team.flag_emoji}
           kickoffAt={openMatch.kickoff_at}
+          status={openMatch.status}
           existing={predMap.get(openMatch.id)}
           onSaved={() => predsQ.refetch()}
         />

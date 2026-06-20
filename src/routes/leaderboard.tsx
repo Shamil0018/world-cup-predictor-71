@@ -28,13 +28,24 @@ function LeaderboardPage() {
   });
 
   useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    const throttledRefetch = () => {
+      if (timer) return;
+      timer = setTimeout(() => {
+        q.refetch();
+        timer = null;
+      }, 5000);
+    };
+
     const ch = supabase
       .channel("lb-feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "predictions" }, () => q.refetch())
-      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => q.refetch())
-      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => q.refetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "predictions" }, throttledRefetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, throttledRefetch)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      if (timer) clearTimeout(timer);
+      supabase.removeChannel(ch);
+    };
   }, [q]);
 
   const rows = q.data ?? [];

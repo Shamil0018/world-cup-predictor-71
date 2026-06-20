@@ -16,6 +16,7 @@ type Props = {
   homeFlag: string;
   awayFlag: string;
   kickoffAt: string;
+  status: "scheduled" | "live" | "finished" | "postponed";
   existing?: { predicted_home: number; predicted_away: number };
   onSaved: () => void;
 };
@@ -25,7 +26,7 @@ export function PredictionDialog(p: Props) {
   const [home, setHome] = useState(p.existing?.predicted_home ?? 1);
   const [away, setAway] = useState(p.existing?.predicted_away ?? 1);
   const [saving, setSaving] = useState(false);
-  const locked = isLocked(p.kickoffAt);
+  const locked = isLocked(p.kickoffAt) || p.status !== "scheduled";
 
   useEffect(() => {
     setHome(p.existing?.predicted_home ?? 1);
