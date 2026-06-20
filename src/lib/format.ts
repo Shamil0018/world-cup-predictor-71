@@ -21,7 +21,7 @@ export function timeUntil(iso: string) {
 }
 
 export function isLocked(kickoffIso: string) {
-  return new Date(kickoffIso).getTime() - Date.now() < 0;
+  return new Date(kickoffIso).getTime() <= Date.now();
 }
 
 export function predictionError(ph: number, pa: number, ah: number, aa: number) {

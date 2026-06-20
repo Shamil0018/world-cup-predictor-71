@@ -32,13 +32,21 @@ export function PredictionDialog(p: Props) {
     setAway(p.existing?.predicted_away ?? 1);
   }, [p.existing, p.open]);
 
+  const alreadySubmitted = !!p.existing;
+
   const save = async () => {
     if (!user) return;
+    if (alreadySubmitted) {
+      toast.error("You already submitted a prediction for this match.");
+      return;
+    }
     setSaving(true);
-    const { error } = await supabase.from("predictions").upsert(
-      { user_id: user.id, match_id: p.matchId, predicted_home: home, predicted_away: away },
-      { onConflict: "user_id,match_id" },
-    );
+    const { error } = await supabase.from("predictions").insert({
+      user_id: user.id,
+      match_id: p.matchId,
+      predicted_home: home,
+      predicted_away: away,
+    });
     setSaving(false);
     if (error) toast.error(error.message);
     else {
@@ -56,6 +64,14 @@ export function PredictionDialog(p: Props) {
         </DialogHeader>
         {!user ? (
           <p className="text-muted-foreground">Please sign in to predict.</p>
+        ) : alreadySubmitted ? (
+          <div className="py-4 text-center">
+            <p className="text-muted-foreground mb-3">Your locked-in prediction:</p>
+            <div className="text-4xl font-bold gradient-text tabular-nums">
+              {p.homeFlag} {p.existing!.predicted_home} – {p.existing!.predicted_away} {p.awayFlag}
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">Predictions can only be saved once.</p>
+          </div>
         ) : locked ? (
           <p className="text-destructive">Predictions are locked (match has already started).</p>
         ) : (
@@ -65,10 +81,12 @@ export function PredictionDialog(p: Props) {
           </div>
         )}
         <DialogFooter>
-          <Button variant="ghost" onClick={() => p.onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save} disabled={saving || locked || !user} className="bg-gradient-primary text-primary-foreground cursor-pointer">
-            {p.existing ? "Update" : "Submit"} prediction
-          </Button>
+          <Button variant="ghost" onClick={() => p.onOpenChange(false)}>Close</Button>
+          {!alreadySubmitted && (
+            <Button onClick={save} disabled={saving || locked || !user} className="bg-gradient-primary text-primary-foreground cursor-pointer">
+              Submit prediction
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
