@@ -121,6 +121,7 @@ function SettingsPage() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-5">
             <UserAvatar avatarUrl={avatar} username={profile.username} className="size-20" />
+            {/* Hiding custom photo upload for the time being
             <label className="cursor-pointer">
               <input
                 type="file"
@@ -132,6 +133,7 @@ function SettingsPage() {
                 <Upload className="size-4" /> Upload Custom Photo
               </span>
             </label>
+            */}
           </div>
 
           <div>
@@ -163,10 +165,12 @@ function SettingsPage() {
           <Label className="text-xs uppercase tracking-widest text-muted-foreground">Username</Label>
           <Input value={profile.username} disabled className="mt-1 opacity-60" />
         </div>
+        {/* Hiding display name editing for the time being
         <div>
           <Label className="text-xs uppercase tracking-widest text-muted-foreground">Display name</Label>
           <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="mt-1" />
         </div>
+        */}
         <div>
           <Label className="text-xs uppercase tracking-widest text-muted-foreground">Bio</Label>
           <Textarea value={bio} maxLength={240} onChange={(e) => setBio(e.target.value)} className="mt-1" rows={3} />
