@@ -80,8 +80,8 @@ export const seedTeamsFn = createServerFn({ method: "POST" })
   });
 
 export const deleteUserFn = createServerFn({ method: "POST" })
-  .validator((id: string) => id)
-  .handler(async ({ data: id }) => {
+  .inputValidator((id: string) => id)
+  .handler(async ({ data: id }: { data: string }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.auth.admin.deleteUser(id);
     if (error) {
