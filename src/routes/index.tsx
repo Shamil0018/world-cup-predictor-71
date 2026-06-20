@@ -472,127 +472,131 @@ function Index() {
           </div>
 
           {nextMatch && (
-            nextMatchPredsQ.isLoading ? (
-              <div className="glass rounded-3xl p-5 mb-6 animate-pulse h-32" />
-            ) : (
-              <div className="glass rounded-3xl p-5 mb-6 border border-white/10 relative overflow-hidden">
-                {/* Decorative background glow */}
-                <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-                
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-[var(--gold)] animate-pulse shrink-0" />
-                    <h3 className="font-extrabold text-xs uppercase tracking-widest text-[var(--gold)]">
-                      Next Upcoming Match Predictor
-                    </h3>
-                  </div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
-                    🔮 {nextMatchStats.total > 0 ? `${nextMatchStats.total} ${nextMatchStats.total === 1 ? "person" : "people"}` : "* people"} predicted
-                  </div>
+            <div className="glass rounded-3xl p-5 mb-6 border border-white/10 relative overflow-hidden">
+              {/* Decorative background glow */}
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+              
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-[var(--gold)] animate-pulse shrink-0" />
+                  <h3 className="font-extrabold text-xs uppercase tracking-widest text-[var(--gold)]">
+                    Next Upcoming Match Predictor
+                  </h3>
                 </div>
-
-                {/* Match Display & Predict Action */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="flex-1 flex items-center gap-4 min-w-0">
-                    {/* Home Team */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-3xl shrink-0">{nextMatch.home_team.flag_emoji}</span>
-                      <span className="font-bold text-sm md:text-base tracking-wider">{nextMatch.home_team.code}</span>
-                    </div>
-                    
-                    <span className="text-xs uppercase font-extrabold text-muted-foreground bg-white/5 px-2 py-0.5 rounded-md font-mono shrink-0">VS</span>
-
-                    {/* Away Team */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-3xl shrink-0">{nextMatch.away_team.flag_emoji}</span>
-                      <span className="font-bold text-sm md:text-base tracking-wider">{nextMatch.away_team.code}</span>
-                    </div>
-
-                    {/* Stage / Kickoff */}
-                    <div className="text-[10px] text-muted-foreground ml-2 border-l border-white/10 pl-3 hidden sm:block truncate">
-                      <span className="uppercase font-semibold text-foreground/80">{nextMatch.stage}</span>
-                      <span className="mx-1.5">•</span>
-                      <span>{new Date(nextMatch.kickoff_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
-                    </div>
-                  </div>
-
-                  {/* Quick Prediction Action */}
-                  <div className="shrink-0 flex items-center gap-3">
-                    {predMap.has(nextMatch.id) ? (
-                      <div className="text-xs font-semibold px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-primary flex items-center gap-2">
-                        <span>Your prediction:</span>
-                        <span className="font-mono text-sm font-bold bg-white/5 px-2 py-0.5 rounded-lg border border-white/5 text-foreground">
-                          {predMap.get(nextMatch.id)!.predicted_home} – {predMap.get(nextMatch.id)!.predicted_away}
-                        </span>
-                      </div>
-                    ) : (
-                      <Button
-                        onClick={() => setOpenMatch(nextMatch)}
-                        size="sm"
-                        className="bg-gradient-primary text-primary-foreground font-semibold text-xs tracking-wider uppercase px-4 py-2.5 rounded-xl cursor-pointer"
-                      >
-                        Predict Now
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Predictor Percentage Bars */}
-                <div className="mt-5 space-y-2">
-                  {!user ? (
-                    <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest">
-                      🔒 Sign in & add prediction to see live predictor
-                    </div>
-                  ) : !predMap.has(nextMatch.id) ? (
-                    <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest">
-                      🔒 Add prediction to see live predictor
-                    </div>
-                  ) : nextMatchStats.total === 0 ? (
-                    <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest font-mono animate-pulse">
-                      ⚡ Live probability loading...
-                    </div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
+                  {nextMatchPredsQ.isLoading ? (
+                    <span className="animate-pulse">🔮 Loading predictions...</span>
                   ) : (
-                    <div>
-                      {/* Visual Bar */}
-                      <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden flex">
-                        <div 
-                          style={{ width: `${nextMatchStats.homeWinPct}%` }} 
-                          className="bg-gradient-primary h-full transition-all duration-500" 
-                          title={`Home Win: ${nextMatchStats.homeWinPct}%`}
-                        />
-                        <div 
-                          style={{ width: `${nextMatchStats.drawPct}%` }} 
-                          className="bg-white/20 h-full transition-all duration-500" 
-                          title={`Draw: ${nextMatchStats.drawPct}%`}
-                        />
-                        <div 
-                          style={{ width: `${nextMatchStats.awayWinPct}%` }} 
-                          className="bg-gradient-gold h-full transition-all duration-500" 
-                          title={`Away Win: ${nextMatchStats.awayWinPct}%`}
-                        />
-                      </div>
-                      
-                      {/* Legend & Percentages */}
-                      <div className="flex items-center justify-between text-[10px] font-bold mt-2 text-muted-foreground font-mono">
-                        <div className="flex items-center gap-1.5 text-foreground">
-                          <span className="size-2 rounded-full bg-gradient-primary" />
-                          <span>{nextMatch.home_team.code} Win ({nextMatchStats.homeWinPct}%)</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="size-2 rounded-full bg-white/20" />
-                          <span>Draw ({nextMatchStats.drawPct}%)</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[var(--gold)]">
-                          <span className="size-2 rounded-full bg-gradient-gold" />
-                          <span>{nextMatch.away_team.code} Win ({nextMatchStats.awayWinPct}%)</span>
-                        </div>
-                      </div>
-                    </div>
+                    <>🔮 {nextMatchStats.total > 0 ? `${nextMatchStats.total} ${nextMatchStats.total === 1 ? "person" : "people"}` : "* people"} predicted</>
                   )}
                 </div>
               </div>
-            )
+
+              {/* Match Display & Predict Action */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex-1 flex items-center gap-4 min-w-0">
+                  {/* Home Team */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl shrink-0">{nextMatch.home_team.flag_emoji}</span>
+                    <span className="font-bold text-sm md:text-base tracking-wider">{nextMatch.home_team.code}</span>
+                  </div>
+                  
+                  <span className="text-xs uppercase font-extrabold text-muted-foreground bg-white/5 px-2 py-0.5 rounded-md font-mono shrink-0">VS</span>
+
+                  {/* Away Team */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl shrink-0">{nextMatch.away_team.flag_emoji}</span>
+                    <span className="font-bold text-sm md:text-base tracking-wider">{nextMatch.away_team.code}</span>
+                  </div>
+
+                  {/* Stage / Kickoff */}
+                  <div className="text-[10px] text-muted-foreground ml-2 border-l border-white/10 pl-3 hidden sm:block truncate">
+                    <span className="uppercase font-semibold text-foreground/80">{nextMatch.stage}</span>
+                    <span className="mx-1.5">•</span>
+                    <span>{new Date(nextMatch.kickoff_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                  </div>
+                </div>
+
+                {/* Quick Prediction Action */}
+                <div className="shrink-0 flex items-center gap-3">
+                  {predMap.has(nextMatch.id) ? (
+                    <div className="text-xs font-semibold px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-primary flex items-center gap-2">
+                      <span>Your prediction:</span>
+                      <span className="font-mono text-sm font-bold bg-white/5 px-2 py-0.5 rounded-lg border border-white/5 text-foreground">
+                        {predMap.get(nextMatch.id)!.predicted_home} – {predMap.get(nextMatch.id)!.predicted_away}
+                      </span>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => setOpenMatch(nextMatch)}
+                      size="sm"
+                      className="bg-gradient-primary text-primary-foreground font-semibold text-xs tracking-wider uppercase px-4 py-2.5 rounded-xl cursor-pointer"
+                    >
+                      Predict Now
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Predictor Percentage Bars */}
+              <div className="mt-5 space-y-2">
+                {nextMatchPredsQ.isLoading ? (
+                  <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest font-mono animate-pulse">
+                    ⚡ Live probability loading...
+                  </div>
+                ) : !user ? (
+                  <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest">
+                    🔒 Sign in & add prediction to see live predictor
+                  </div>
+                ) : !predMap.has(nextMatch.id) ? (
+                  <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest">
+                    🔒 Add prediction to see live predictor
+                  </div>
+                ) : nextMatchStats.total === 0 ? (
+                  <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest font-mono animate-pulse">
+                    ⚡ Live probability loading...
+                  </div>
+                ) : (
+                  <div>
+                    {/* Visual Bar */}
+                    <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden flex">
+                      <div 
+                        style={{ width: `${nextMatchStats.homeWinPct}%` }} 
+                        className="bg-gradient-primary h-full transition-all duration-500" 
+                        title={`Home Win: ${nextMatchStats.homeWinPct}%`}
+                      />
+                      <div 
+                        style={{ width: `${nextMatchStats.drawPct}%` }} 
+                        className="bg-white/20 h-full transition-all duration-500" 
+                        title={`Draw: ${nextMatchStats.drawPct}%`}
+                      />
+                      <div 
+                        style={{ width: `${nextMatchStats.awayWinPct}%` }} 
+                        className="bg-gradient-gold h-full transition-all duration-500" 
+                        title={`Away Win: ${nextMatchStats.awayWinPct}%`}
+                      />
+                    </div>
+                    
+                    {/* Legend & Percentages */}
+                    <div className="flex items-center justify-between text-[10px] font-bold mt-2 text-muted-foreground font-mono">
+                      <div className="flex items-center gap-1.5 text-foreground">
+                        <span className="size-2 rounded-full bg-gradient-primary" />
+                        <span>{nextMatch.home_team.code} Win ({nextMatchStats.homeWinPct}%)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-white/20" />
+                        <span>Draw ({nextMatchStats.drawPct}%)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[var(--gold)]">
+                        <span className="size-2 rounded-full bg-gradient-gold" />
+                        <span>{nextMatch.away_team.code} Win ({nextMatchStats.awayWinPct}%)</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {matchesQ.isLoading ? (
