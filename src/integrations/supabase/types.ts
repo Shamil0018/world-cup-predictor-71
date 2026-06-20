@@ -204,8 +204,9 @@ export type Database = {
       leaderboard: {
         Row: {
           avatar_url: string | null
+          games_predicted: number | null
           matches_scored: number | null
-          total_error: number | null
+          total_points: number | null
           user_id: string | null
           username: string | null
         }
