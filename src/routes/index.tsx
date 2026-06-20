@@ -550,40 +550,48 @@ function Index() {
                       No predictions locked in yet. Be the first to predict!
                     </div>
                   ) : (
-                    <div>
-                      {/* Visual Bar */}
-                      <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden flex">
+                    <div className="space-y-4">
+                      {/* Breakdown Header */}
+                      <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        <span>Prediction Breakdown</span>
+                        <span className="text-[11px] font-mono text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                          {nextMatchStats.total} {nextMatchStats.total === 1 ? "user" : "users"} predicted
+                        </span>
+                      </div>
+
+                      {/* Large Percentages Display */}
+                      <div className="grid grid-cols-3 gap-2.5 text-center py-1">
+                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3 flex flex-col justify-center">
+                          <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">{nextMatch.home_team.code} Win</div>
+                          <div className="text-xl font-extrabold text-foreground font-mono mt-1">{nextMatchStats.homeWinPct}%</div>
+                        </div>
+                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3 flex flex-col justify-center">
+                          <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Draw</div>
+                          <div className="text-xl font-extrabold text-muted-foreground font-mono mt-1">{nextMatchStats.drawPct}%</div>
+                        </div>
+                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3 flex flex-col justify-center">
+                          <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">{nextMatch.away_team.code} Win</div>
+                          <div className="text-xl font-extrabold text-[var(--gold)] font-mono mt-1">{nextMatchStats.awayWinPct}%</div>
+                        </div>
+                      </div>
+
+                      {/* Visual segmented progress bar */}
+                      <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden flex shadow-inner">
                         <div 
                           style={{ width: `${nextMatchStats.homeWinPct}%` }} 
                           className="bg-gradient-primary h-full transition-all duration-500" 
-                          title={`Home Win: ${nextMatchStats.homeWinPct}%`}
+                          title={`${nextMatch.home_team.code} Win: ${nextMatchStats.homeWinPct}%`}
                         />
                         <div 
                           style={{ width: `${nextMatchStats.drawPct}%` }} 
-                          className="bg-white/20 h-full transition-all duration-500" 
+                          className="bg-white/25 h-full transition-all duration-500" 
                           title={`Draw: ${nextMatchStats.drawPct}%`}
                         />
                         <div 
                           style={{ width: `${nextMatchStats.awayWinPct}%` }} 
                           className="bg-gradient-gold h-full transition-all duration-500" 
-                          title={`Away Win: ${nextMatchStats.awayWinPct}%`}
+                          title={`${nextMatch.away_team.code} Win: ${nextMatchStats.awayWinPct}%`}
                         />
-                      </div>
-                      
-                      {/* Legend & Percentages */}
-                      <div className="flex items-center justify-between text-[10px] font-bold mt-2 text-muted-foreground font-mono">
-                        <div className="flex items-center gap-1.5 text-foreground">
-                          <span className="size-2 rounded-full bg-gradient-primary" />
-                          <span>{nextMatch.home_team.code} Win ({nextMatchStats.homeWinPct}%)</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="size-2 rounded-full bg-white/20" />
-                          <span>Draw ({nextMatchStats.drawPct}%)</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[var(--gold)]">
-                          <span className="size-2 rounded-full bg-gradient-gold" />
-                          <span>{nextMatch.away_team.code} Win ({nextMatchStats.awayWinPct}%)</span>
-                        </div>
                       </div>
                     </div>
                   )}
