@@ -81,7 +81,7 @@ function LeaderboardPage() {
                 <UserAvatar avatarUrl={r.avatar_url} username={r.username} className="size-10" />
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{r.username}</div>
-                  <div className="text-xs text-muted-foreground">{r.games_predicted} predicted · {r.matches_scored} scored</div>
+                  <div className="text-xs text-muted-foreground">{r.matches_scored} scored</div>
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold tabular-nums gradient-text">{r.total_points}</div>

@@ -367,7 +367,7 @@ function Index() {
                     <UserAvatar avatarUrl={r.avatar_url} username={r.username} className="size-7" />
                     <div className="flex-1 min-w-0 text-xs">
                       <div className="font-semibold truncate">{r.username}</div>
-                      <div className="text-[10px] text-muted-foreground">{(r as any).games_predicted || 0} pred · {r.matches_scored || 0} scored</div>
+                      <div className="text-[10px] text-muted-foreground">{r.matches_scored || 0} scored</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-bold font-mono text-primary text-sm">{(r as any).total_points || 0}</div>
