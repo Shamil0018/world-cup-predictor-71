@@ -195,7 +195,7 @@ function Index() {
       list = list.filter((m) => m.status === "finished");
     }
 
-    return list;
+    return [...list].sort((a, b) => new Date(b.kickoff_at).getTime() - new Date(a.kickoff_at).getTime());
   }, [matchesQ.data, search, filter]);
 
   const slicedMatches = useMemo(() => {
