@@ -72,64 +72,58 @@ function Index() {
     },
   });
 
-  const nextMatch = useMemo(() => {
-    const list = matchesQ.data ?? [];
-    const upcoming = list.filter((m) => m.status === "scheduled" || m.status === "live");
-    if (upcoming.length === 0) return null;
-    return upcoming[0];
-  }, [matchesQ.data]);
-
-  const nextMatchPredsQ = useQuery({
-    queryKey: ["next-match-preds", nextMatch?.id],
-    enabled: !!nextMatch,
+  const nextMatchQ = useQuery({
+    queryKey: ["next-match-with-preds"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("predictions")
-        .select("predicted_home,predicted_away,user_id,profiles(username,avatar_url)")
-        .eq("match_id", nextMatch!.id);
+        .from("matches")
+        .select(`
+          id, kickoff_at, stage, venue, status, home_score, away_score,
+          home_team:home_team_id(id,code,name,flag_emoji),
+          away_team:away_team_id(id,code,name,flag_emoji),
+          predictions(predicted_home, predicted_away, user_id, profiles(username,avatar_url))
+        `)
+        .or("status.eq.scheduled,status.eq.live")
+        .order("kickoff_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
       if (error) throw error;
-
-      const list = data || [];
-      const total = list.length;
-      let home_wins = 0;
-      let draws = 0;
-      let away_wins = 0;
-
-      list.forEach((p) => {
-        if (p.predicted_home > p.predicted_away) home_wins++;
-        else if (p.predicted_home === p.predicted_away) draws++;
-        else away_wins++;
-      });
-
-      return { 
-        total, 
-        home_wins, 
-        draws, 
-        away_wins,
-        predictionsList: list as unknown as Array<{
-          predicted_home: number;
-          predicted_away: number;
-          user_id: string;
-          profiles: { username: string; avatar_url: string | null } | null;
-        }>
-      };
+      return data as any;
     },
   });
 
-  const nextMatchStats = useMemo(() => {
-    const stats = nextMatchPredsQ.data;
-    if (!stats || stats.total === 0) {
-      return { total: 0, homeWinPct: 0, drawPct: 0, awayWinPct: 0 };
-    }
+  const nextMatch = nextMatchQ.data;
 
-    const total = stats.total;
-    return {
-      total,
-      homeWinPct: Math.round((stats.home_wins / total) * 100),
-      drawPct: Math.round((stats.draws / total) * 100),
-      awayWinPct: Math.round((stats.away_wins / total) * 100),
+  const nextMatchStats = useMemo(() => {
+    const predictions = nextMatch?.predictions || [];
+    const total = predictions.length;
+    let home_wins = 0;
+    let draws = 0;
+    let away_wins = 0;
+
+    predictions.forEach((p: any) => {
+      if (p.predicted_home > p.predicted_away) home_wins++;
+      else if (p.predicted_home === p.predicted_away) draws++;
+      else away_wins++;
+    });
+
+    const homeWinPct = total > 0 ? Math.round((home_wins / total) * 100) : 0;
+    const drawPct = total > 0 ? Math.round((draws / total) * 100) : 0;
+    const awayWinPct = total > 0 ? Math.round((away_wins / total) * 100) : 0;
+
+    return { 
+      total, 
+      homeWinPct, 
+      drawPct, 
+      awayWinPct,
+      predictionsList: predictions as Array<{
+        predicted_home: number;
+        predicted_away: number;
+        user_id: string;
+        profiles: { username: string; avatar_url: string | null } | null;
+      }>
     };
-  }, [nextMatchPredsQ.data]);
+  }, [nextMatch?.predictions]);
 
   useEffect(() => {
     const checkAndSeed = async () => {
@@ -149,20 +143,22 @@ function Index() {
   useEffect(() => {
     const ch = supabase
       .channel("matches-feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => matchesQ.refetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => {
+        matchesQ.refetch();
+        nextMatchQ.refetch();
+      })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [matchesQ]);
+  }, [matchesQ, nextMatchQ]);
 
   useEffect(() => {
-    if (!nextMatch) return;
     const ch = supabase
       .channel("next-match-preds-feed")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "predictions" },
         () => {
-          nextMatchPredsQ.refetch();
+          nextMatchQ.refetch();
           predsQ.refetch();
         }
       )
@@ -170,7 +166,7 @@ function Index() {
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [nextMatch, nextMatchPredsQ, predsQ]);
+  }, [nextMatchQ, predsQ]);
 
   const [filter, setFilter] = useState<"all" | "upcoming" | "finished">("all");
   const [search, setSearch] = useState("");
@@ -512,7 +508,7 @@ function Index() {
                   </h3>
                 </div>
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
-                  {nextMatchPredsQ.isLoading ? (
+                  {nextMatchQ.isLoading ? (
                     <span className="animate-pulse">🔮 Loading predictions...</span>
                   ) : (
                     <>🔮 {nextMatchStats.total > 0 ? `${nextMatchStats.total} ${nextMatchStats.total === 1 ? "person" : "people"}` : "* people"} predicted</>
@@ -568,7 +564,7 @@ function Index() {
 
               {/* Predictor Percentage Bars */}
               <div className="mt-5 space-y-2">
-                {nextMatchPredsQ.isLoading ? (
+                {nextMatchQ.isLoading ? (
                   <div className="text-center py-3.5 text-xs font-bold text-muted-foreground bg-white/[0.01] rounded-2xl border border-dashed border-white/10 uppercase tracking-widest font-mono animate-pulse">
                     ⚡ Live probability loading...
                   </div>
@@ -634,7 +630,7 @@ function Index() {
                       <div className="mt-3 p-3 rounded-2xl bg-white/[0.01] border border-white/5 space-y-2 max-h-[160px] overflow-y-auto pr-1 transition-all duration-300">
                         <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold font-mono">Who predicted:</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {nextMatchPredsQ.data?.predictionsList?.map((p, idx) => (
+                          {nextMatchStats.predictionsList?.map((p, idx) => (
                             <div key={idx} className="flex items-center justify-between p-2 bg-white/[0.02] border border-white/5 rounded-xl text-[10px] gap-2">
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <UserAvatar 
@@ -651,7 +647,7 @@ function Index() {
                               </span>
                             </div>
                           ))}
-                          {(!nextMatchPredsQ.data?.predictionsList || nextMatchPredsQ.data.predictionsList.length === 0) && (
+                          {(!nextMatchStats.predictionsList || nextMatchStats.predictionsList.length === 0) && (
                             <p className="text-muted-foreground text-[10px]">No predictions recorded.</p>
                           )}
                         </div>
@@ -720,7 +716,10 @@ function Index() {
           kickoffAt={openMatch.kickoff_at}
           status={openMatch.status}
           existing={predMap.get(openMatch.id)}
-          onSaved={() => predsQ.refetch()}
+          onSaved={() => {
+            predsQ.refetch();
+            nextMatchQ.refetch();
+          }}
         />
       )}
     </div>
