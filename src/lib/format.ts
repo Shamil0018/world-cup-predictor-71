@@ -24,8 +24,22 @@ export function isLocked(kickoffIso: string) {
   return new Date(kickoffIso).getTime() <= Date.now();
 }
 
-export function predictionError(ph: number, pa: number, ah: number, aa: number) {
+export function predictionError(
+  ph: number,
+  pa: number,
+  ah: number,
+  aa: number,
+  stage: string = 'group',
+  predictedWinnerId?: string | null,
+  actualWinnerId?: string | null
+) {
   const diff = Math.abs(ph - ah) + Math.abs(pa - aa) + Math.abs(ph - pa - (ah - aa));
-  const correctOutcome = (ah > aa && ph > pa) || (ah < aa && ph < pa) || (ah === aa && ph === pa);
-  return diff + (correctOutcome ? 0 : 2);
+  
+  if (stage !== 'group') {
+    const correctOutcome = !!(predictedWinnerId && actualWinnerId && predictedWinnerId === actualWinnerId);
+    return diff + (correctOutcome ? 0 : 2);
+  } else {
+    const correctOutcome = (ah > aa && ph > pa) || (ah < aa && ph < pa) || (ah === aa && ph === pa);
+    return diff + (correctOutcome ? 0 : 2);
+  }
 }

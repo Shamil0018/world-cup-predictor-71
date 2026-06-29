@@ -45,7 +45,7 @@ function ProfilePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("predictions")
-        .select("id,predicted_home,predicted_away,created_at,match:match_id(id,kickoff_at,status,home_score,away_score,home_team:home_team_id(code,name,flag_emoji),away_team:away_team_id(code,name,flag_emoji))")
+        .select("id,predicted_home,predicted_away,predicted_winner_id,created_at,match:match_id(id,kickoff_at,status,stage,winner_id,home_score,away_score,home_team:home_team_id(code,name,flag_emoji),away_team:away_team_id(code,name,flag_emoji))")
         .eq("user_id", profQ.data!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -53,11 +53,14 @@ function ProfilePage() {
         id: string;
         predicted_home: number;
         predicted_away: number;
+        predicted_winner_id: string | null;
         created_at: string;
         match: {
           id: string;
           kickoff_at: string;
           status: "scheduled" | "live" | "finished" | "postponed";
+          stage: string;
+          winner_id: string | null;
           home_score: number | null;
           away_score: number | null;
           home_team: { code: string; name: string; flag_emoji: string };
@@ -94,13 +97,16 @@ function ProfilePage() {
         {predsQ.data?.length === 0 && <p className="text-muted-foreground">No predictions yet.</p>}
         {predsQ.data?.map((p) => {
           const finished = p.match.status === "finished" && p.match.home_score != null && p.match.away_score != null;
-          const err = finished ? predictionError(p.predicted_home, p.predicted_away, p.match.home_score!, p.match.away_score!) : null;
+          const isKnockout = p.match.stage !== "group";
+          const err = finished ? predictionError(p.predicted_home, p.predicted_away, p.match.home_score!, p.match.away_score!, p.match.stage, p.predicted_winner_id, p.match.winner_id) : null;
+          const pointsEarned = isKnockout ? 40 - 2 * (err ?? 0) : 20 - (err ?? 0);
           return (
             <div key={p.id} className="glass rounded-2xl p-4 flex items-center gap-4">
               <div className="flex-1 flex items-center gap-3 min-w-0">
                 <span className="text-2xl">{p.match.home_team.flag_emoji}</span>
                 <span className="font-medium truncate">{p.match.home_team.code} vs {p.match.away_team.code}</span>
                 <span className="text-2xl">{p.match.away_team.flag_emoji}</span>
+                <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded uppercase font-semibold text-muted-foreground ml-2">{p.match.stage}</span>
               </div>
               <div className="text-sm tabular-nums">
                 <span className="text-primary font-bold">{p.predicted_home}–{p.predicted_away}</span>
@@ -110,7 +116,7 @@ function ProfilePage() {
               </div>
               {finished && (
                 <div className="text-right">
-                  <div className="text-lg font-bold gradient-text tabular-nums">+{20 - (err ?? 0)}</div>
+                  <div className="text-lg font-bold gradient-text tabular-nums">+{pointsEarned}</div>
                   <div className="text-[10px] uppercase tracking-widest text-muted-foreground">points</div>
                 </div>
               )}

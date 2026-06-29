@@ -62,7 +62,7 @@ with user_group_predictions as (
 user_knockout_predictions as (
   select
     pr.user_id,
-    sum(20 - public.prediction_error(pr.predicted_home, pr.predicted_away, m.home_score, m.away_score, m.stage, pr.predicted_winner_id, m.winner_id))::int as points,
+    sum(40 - 2 * public.prediction_error(pr.predicted_home, pr.predicted_away, m.home_score, m.away_score, m.stage, pr.predicted_winner_id, m.winner_id))::int as points,
     sum(public.prediction_error(pr.predicted_home, pr.predicted_away, m.home_score, m.away_score, m.stage, pr.predicted_winner_id, m.winner_id))::int as error,
     count(pr.id)::int as matches_scored
   from public.predictions pr
