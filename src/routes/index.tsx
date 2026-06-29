@@ -30,8 +30,8 @@ type MatchRow = {
   status: "scheduled" | "live" | "finished" | "postponed";
   home_score: number | null;
   away_score: number | null;
-  home_team: { code: string; name: string; flag_emoji: string };
-  away_team: { code: string; name: string; flag_emoji: string };
+  home_team: { id: string; code: string; name: string; flag_emoji: string };
+  away_team: { id: string; code: string; name: string; flag_emoji: string };
 };
 
 type Msg = {
@@ -51,7 +51,7 @@ function Index() {
     queryFn: async (): Promise<MatchRow[]> => {
       const { data, error } = await supabase
         .from("matches")
-        .select("id,kickoff_at,stage,venue,status,home_score,away_score,home_team:home_team_id(code,name,flag_emoji),away_team:away_team_id(code,name,flag_emoji)")
+        .select("id,kickoff_at,stage,venue,status,home_score,away_score,home_team:home_team_id(id,code,name,flag_emoji),away_team:away_team_id(id,code,name,flag_emoji)")
         .order("kickoff_at", { ascending: true });
       if (error) throw error;
       return data as unknown as MatchRow[];
@@ -64,10 +64,10 @@ function Index() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("predictions")
-        .select("match_id,predicted_home,predicted_away")
+        .select("match_id,predicted_home,predicted_away,predicted_winner_id")
         .eq("user_id", user!.id);
       if (error) throw error;
-      return data as { match_id: string; predicted_home: number; predicted_away: number }[];
+      return data as { match_id: string; predicted_home: number; predicted_away: number; predicted_winner_id: string | null }[];
     },
   });
 
@@ -169,7 +169,7 @@ function Index() {
   }, [filter, search]);
 
   const predMap = useMemo(() => {
-    const m = new Map<string, { predicted_home: number; predicted_away: number }>();
+    const m = new Map<string, { predicted_home: number; predicted_away: number; predicted_winner_id: string | null }>();
     predsQ.data?.forEach((p) => m.set(p.match_id, p));
     return m;
   }, [predsQ.data]);
@@ -659,10 +659,15 @@ function Index() {
           open={!!openMatch}
           onOpenChange={(b) => !b && setOpenMatch(null)}
           matchId={openMatch.id}
+          stage={openMatch.stage}
+          homeTeamId={openMatch.home_team.id}
+          awayTeamId={openMatch.away_team.id}
           homeName={openMatch.home_team.name}
           awayName={openMatch.away_team.name}
           homeFlag={openMatch.home_team.flag_emoji}
           awayFlag={openMatch.away_team.flag_emoji}
+          homeCode={openMatch.home_team.code}
+          awayCode={openMatch.away_team.code}
           kickoffAt={openMatch.kickoff_at}
           status={openMatch.status}
           existing={predMap.get(openMatch.id)}
