@@ -45,6 +45,7 @@ type Msg = {
 function Index() {
   const { user, profile } = useAuth();
   const [openMatch, setOpenMatch] = useState<MatchRow | null>(null);
+  const [showPredictors, setShowPredictors] = useState(false);
 
   const matchesQ = useQuery({
     queryKey: ["matches"],
@@ -84,7 +85,7 @@ function Index() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("predictions")
-        .select("predicted_home,predicted_away")
+        .select("predicted_home,predicted_away,user_id,profiles(username,avatar_url)")
         .eq("match_id", nextMatch!.id);
       if (error) throw error;
 
@@ -100,7 +101,18 @@ function Index() {
         else away_wins++;
       });
 
-      return { total, home_wins, draws, away_wins };
+      return { 
+        total, 
+        home_wins, 
+        draws, 
+        away_wins,
+        predictionsList: list as unknown as Array<{
+          predicted_home: number;
+          predicted_away: number;
+          user_id: string;
+          profiles: { username: string; avatar_url: string | null } | null;
+        }>
+      };
     },
   });
 
@@ -575,7 +587,11 @@ function Index() {
                 ) : (
                   <div>
                     {/* Visual Bar */}
-                    <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden flex">
+                    <div 
+                      onClick={() => setShowPredictors(!showPredictors)}
+                      className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden flex cursor-pointer hover:opacity-90 hover:scale-[1.005] active:scale-100 transition-all"
+                      title="Click to see who predicted"
+                    >
                       <div 
                         style={{ width: `${nextMatchStats.homeWinPct}%` }} 
                         className="bg-gradient-primary h-full transition-all duration-500" 
@@ -594,7 +610,11 @@ function Index() {
                     </div>
                     
                     {/* Legend & Percentages */}
-                    <div className="flex items-center justify-between text-[10px] font-bold mt-2 text-muted-foreground font-mono">
+                    <div 
+                      onClick={() => setShowPredictors(!showPredictors)}
+                      className="flex items-center justify-between text-[10px] font-bold mt-2 text-muted-foreground font-mono cursor-pointer hover:text-foreground transition-colors"
+                      title="Click to see who predicted"
+                    >
                       <div className="flex items-center gap-1.5 text-foreground">
                         <span className="size-2 rounded-full bg-gradient-primary" />
                         <span>{nextMatch.home_team.code} Win ({nextMatchStats.homeWinPct}%)</span>
@@ -608,6 +628,35 @@ function Index() {
                         <span>{nextMatch.away_team.code} Win ({nextMatchStats.awayWinPct}%)</span>
                       </div>
                     </div>
+
+                    {/* Subtle Predictors Panel */}
+                    {showPredictors && (
+                      <div className="mt-3 p-3 rounded-2xl bg-white/[0.01] border border-white/5 space-y-2 max-h-[160px] overflow-y-auto pr-1 transition-all duration-300">
+                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold font-mono">Who predicted:</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {nextMatchPredsQ.data?.predictionsList?.map((p, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-2 bg-white/[0.02] border border-white/5 rounded-xl text-[10px] gap-2">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <UserAvatar 
+                                  avatarUrl={p.profiles?.avatar_url} 
+                                  username={p.profiles?.username || "anonymous"} 
+                                  className="size-4.5 shrink-0" 
+                                />
+                                <span className="font-semibold text-muted-foreground truncate">
+                                  @{p.profiles?.username || "anonymous"}
+                                </span>
+                              </div>
+                              <span className="font-bold text-foreground bg-white/5 px-2 py-0.5 rounded font-mono shrink-0">
+                                {p.predicted_home}–{p.predicted_away}
+                              </span>
+                            </div>
+                          ))}
+                          {(!nextMatchPredsQ.data?.predictionsList || nextMatchPredsQ.data.predictionsList.length === 0) && (
+                            <p className="text-muted-foreground text-[10px]">No predictions recorded.</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
