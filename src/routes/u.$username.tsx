@@ -99,7 +99,7 @@ function ProfilePage() {
           const finished = p.match.status === "finished" && p.match.home_score != null && p.match.away_score != null;
           const isKnockout = p.match.stage !== "group";
           const err = finished ? predictionError(p.predicted_home, p.predicted_away, p.match.home_score!, p.match.away_score!, p.match.stage, p.predicted_winner_id, p.match.winner_id) : null;
-          const extraOutcomePenalty = p.predicted_winner_id === p.match.winner_id ? 0 : 5;
+          const extraOutcomePenalty = p.predicted_winner_id === p.match.winner_id ? 0 : 10;
           const pointsEarned = isKnockout ? 50 - 2.5 * (err ?? 0) - extraOutcomePenalty : 20 - (err ?? 0);
           return (
             <div key={p.id} className="glass rounded-2xl p-4 flex items-center gap-4">
