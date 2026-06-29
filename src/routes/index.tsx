@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { UserAvatar } from "@/components/UserAvatar";
+import { MbappePopup } from "@/components/MbappePopup";
 import { toast } from "sonner";
 import { Sparkles, Trophy, Crown, Medal, Send, MessageSquare, ChevronRight } from "lucide-react";
 
@@ -45,6 +46,29 @@ type Msg = {
 function Index() {
   const { user, profile } = useAuth();
   const [openMatch, setOpenMatch] = useState<MatchRow | null>(null);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+
+  const settingsQ = useQuery({
+    queryKey: ["mbappe-popup-setting"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("settings")
+        .select("key,value")
+        .eq("key", "mbappe_popup_enabled")
+        .maybeSingle();
+      if (error) throw error;
+      return (data?.value as boolean) || false;
+    }
+  });
+
+  useEffect(() => {
+    if (settingsQ.data === true) {
+      const seen = sessionStorage.getItem("seen_mbappe_popup");
+      if (!seen) {
+        setShowWelcomePopup(true);
+      }
+    }
+  }, [settingsQ.data]);
 
   const matchesQ = useQuery({
     queryKey: ["matches"],
@@ -673,6 +697,9 @@ function Index() {
           existing={predMap.get(openMatch.id)}
           onSaved={() => predsQ.refetch()}
         />
+      )}
+      {showWelcomePopup && (
+        <MbappePopup onClose={() => setShowWelcomePopup(false)} />
       )}
     </div>
   );

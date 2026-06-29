@@ -49,6 +49,33 @@ function AdminPage() {
     },
   });
 
+  const settingsQ = useQuery({
+    queryKey: ["admin-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("settings")
+        .select("key,value")
+        .eq("key", "mbappe_popup_enabled")
+        .maybeSingle();
+      if (error) throw error;
+      return (data?.value as boolean) || false;
+    }
+  });
+
+  const toggleMbappePopup = async () => {
+    const nextVal = !settingsQ.data;
+    const { error } = await supabase
+      .from("settings")
+      .upsert({ key: "mbappe_popup_enabled", value: nextVal });
+    
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(`Mbappe Dictator Pop-up ${nextVal ? "enabled" : "disabled"}`);
+      settingsQ.refetch();
+    }
+  };
+
   const matchesQ = useQuery({
     queryKey: ["admin-matches"],
     queryFn: async (): Promise<Match[]> => {
@@ -206,6 +233,23 @@ function AdminPage() {
           {seeding ? "Seeding 48 Teams..." : "Seed 48 Teams List"}
         </Button>
       </div>
+
+      {/* SETTINGS CONTROL CARD */}
+      <section className="glass rounded-3xl p-6 mb-8 border border-white/5 flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-bold">Knockout Dictator Welcome Pop-up</h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Toggle the Welcome to Knockout dictator pop-up with background music on/off globally.
+          </p>
+        </div>
+        <Button 
+          onClick={toggleMbappePopup} 
+          variant={settingsQ.data ? "default" : "outline"}
+          className="cursor-pointer text-xs font-semibold h-9 shrink-0"
+        >
+          {settingsQ.data ? "🔴 Active (Disable)" : "⚪ Disabled (Enable)"}
+        </Button>
+      </section>
 
       {/* MATCH FIXTURES & RESULTS */}
       <section className="glass rounded-3xl p-6 mb-8 border border-white/5">
